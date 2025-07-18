@@ -2,6 +2,9 @@ import { createApp } from 'vue'
 
 import Cookies from 'js-cookie'
 
+
+// 如果您正在使用CDN引入，请删除下面一行。
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
@@ -45,6 +48,10 @@ import ImagePreview from "@/components/ImagePreview"
 import DictTag from '@/components/DictTag'
 
 const app = createApp(App)
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component)
+}
+
 
 // 全局方法挂载
 app.config.globalProperties.useDict = useDict

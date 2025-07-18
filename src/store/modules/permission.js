@@ -79,6 +79,41 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
       delete route['children']
       delete route['redirect']
     }
+
+    // ---------------------------------------------------------------------------------
+        // 重命名冲突的User子路由
+    if (route.path === '/user' && route.name === 'User' && route.children) {
+      route.children.forEach(child => {
+        if (child.name === 'User') {
+          child.name = 'UserList';
+        }
+      });
+    }
+    // 重命名冲突的Stocktaking子路由
+    if (route.name === 'Stocktaking' && route.children) {
+      route.children.forEach(child => {
+        if (child.name === 'Stocktaking') {
+          child.name = 'StocktakingTask';
+        }
+      });
+    }
+    // 重命名冲突的Report子路由
+    if (route.name === 'Report' && route.children) {
+      route.children.forEach(child => {
+        if (child.name === 'Report') {
+          child.name = 'ReportList';
+        }
+      });
+    }
+    // 重命名冲突的Report子路由
+    if (route.name === 'Layout' && route.children) {
+      route.children.forEach(child => {
+        if (child.name === 'Layout') {
+          child.name = 'LayoutList';
+        }
+      });
+    }
+// -------------------------------------------------------------------------------------
     return true
   })
 }
