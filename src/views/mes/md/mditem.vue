@@ -14,17 +14,27 @@
                 <myInput
                     @searchInputData='getSearchData'
                     @clearSearchData="resetSearchData"
+                    :inputConfigs="inputConfigs"
                 ></myInput>
             </div>
             <div class="color-button">
-                <el-button type="primary" icon="Plus" plain>新增</el-button>
-                <el-button type="success" icon="EditPen" plain>修改</el-button>
+                <el-button type="primary" 
+                           icon="Plus" 
+                           plain
+                           @click="addNew"
+                           >新增</el-button>
+                <el-button type="success" 
+                           icon="EditPen" 
+                           plain
+                           :disabled="mytable?.deleteArr.length == 1 ?false:true"
+                           >修改</el-button>
                 <el-button type="danger" 
                            icon="Delete" 
                            plain 
                            @click="delAll"
+                           :disabled="mytable?.deleteArr.length == 0 ? true:false"
                            >删除</el-button>
-                            <!-- :disabled="ids.length == 0 ? true:false" -->
+                            <!--  -->
                 <el-button type="info" icon="Upload" plain>导入</el-button>
                 <el-button type="warning" icon="Download" plain>导出</el-button>
             </div>
@@ -125,18 +135,31 @@
                 </div>
             </template>
          </el-dialog>
-    </div>
 
+         <!-- 新增修改弹窗 -->
+          <addEditDialog v-model:dialogVisible="dialogVisible"
+                         :itemOrProjectData="itemOrProjectData"
+                         :UnitTreeData="UnitTreeData">
+            
+          </addEditDialog>
+    </div>
 </template>
 <script setup>
 import { onMounted, ref } from 'vue'
-// 引入子组件  tree myTable  myInput
+// 引入子组件  tree myTable  myInput  addEdit
 import myInput from '@/components/MyInput/myInput.vue'
 import treev2 from '@/components/tree/treev2.vue'
 import myTable from '@/components/myTable/myTable.vue'
+import addEditDialog from '@/components/AddOrEdit/addEditDialog.vue'
 // 引入接口
-import { getTreeList, getTableList,switchStatus,deleteProject} from '@/api/mainData/mainData.js'
+import { getTreeList, getTableList,switchStatus,deleteProject,getProjectTreeData,getUnitTreeData} from '@/api/mainData/mainData.js'
 import { ElMessage } from 'element-plus'
+
+// 测试： 父组件传入 -----------------
+const inputConfigs = [
+  { label: '物料编码', placeholder: '请输入物料编码', prop: 'materialCode', slotStatus:false},
+  { label: '物料名称', placeholder: '请输入物料名称', prop: 'materialName',slotStatus:false}, 
+]
 
 
 
@@ -231,6 +254,14 @@ let deleteItemId = ref(0)
 // 定义一个状态  用于判断该弹窗是用户点击switch的弹窗     还是用户点击删除的弹窗
 // switch的弹窗为switch    用户点击删除的弹窗为delete
 let switchOrDelete = ref('')
+
+// 定义 新增弹窗默认为false
+const dialogVisible = ref(false)
+
+// 弹窗中 物料/产品分类数据
+const itemOrProjectData = ref([])
+
+const UnitTreeData = ref([])
 
 
 // 获取左侧属性结构数据
@@ -328,11 +359,14 @@ const getSearchData=async(searchData)=>{
 }
 // 重置按钮
 const resetSearchData=()=>{
+    console.log(params,'params');
+    
     // 重置搜索框的数据
     params.value.itemCode = 0
     params.value.itemName = ''
     // 重置table数据
-    getSearchData(params.value)
+    // getSearchData(params.value)
+    getTableData()
     
 }
 
@@ -390,18 +424,60 @@ const deleteConfirmButton=async()=>{
     }
 }
 const delAll = async()=>{
+    // 将ids.value转为字符串
     ids.value = mytable.value.deleteArr
+    ids.value = ids.value.toString()
     console.log(ids.value,'ids');
-    
-    deleteProject(ids)
+    console.log(typeof ids.value,'ids的类型');
+    await deleteProject(ids.value)
+
     getTableData()
 }
+const addNew = async()=>{
+    // 新增物料弹窗打开
+    dialogVisible.value = true
+    // console.log(dialogVisible.value,'dialogVisible');
+    try {
+        // 调用 获取物料/产品分类树形数据
+        let {code,data,msg}  = await getProjectTreeData()
+        if(code == 200){
+            console.log(data,'data');
+            // 获取物料/产品分类树形数据并赋值给treeData
+            itemOrProjectData.value = data
+            ElMessage.success(msg)
+        }
+
+        
+    } catch (error) {
+        console.log(error,'error');
+        
+    }
+    
+
+}
+const getUnitData=async()=>{
+    // 获取单位的树形数据
+        let {code,msg,data} =  await getUnitTreeData()
+        if(code == 200){
+            console.log('123123123');
+            
+            // console.log(dataTree,'dataTree');
+            // 获取单位的树形数据并赋值给UnitTreeData
+            UnitTreeData.value = data
+            ElMessage.success('单位数据'+ msg)
+        }
+}
+
+
+
 
 onMounted(() => {
     // 获取左侧树形数据
     getTreeData()
     // 获取table右侧数据
     getTableData()
+    // 获取单位树形数据
+    getUnitData()
 
 })
 </script>
@@ -409,7 +485,6 @@ onMounted(() => {
 .mditem {
     display: flex;
     padding: 20px 10px 0px 10px;
-    border: 1px solid;
     height: 100vh;
 }
 

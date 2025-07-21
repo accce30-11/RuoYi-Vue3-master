@@ -3,7 +3,9 @@ import path from 'path'
 import createVitePlugins from './vite/plugins'
 
 // const baseUrl = 'http://47.104.167.34:9100/prod-api' // 后端接口
-const baseUrl = 'http://8.142.74.15:23502' // 后端接口
+// const baseUrl = 'http://8.142.74.15:23502' // 后端接口
+const baseUrl = 'http://47.104.167.34:23502/'
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd())

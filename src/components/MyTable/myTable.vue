@@ -75,8 +75,18 @@
 
     // 复选框  选中项 发生变化时，获取选中行
     const handleSelectionChange=(val)=>{
-        deleteArr.value = val.map(item=>item.itemId)
+        // 这里需要判断，如果数据中标题：物料编码，则执行下面这句，
+        // 如果为单位编码，则执行measureId
+        if(props.tableSetting[0].prop === 'itemCode'){
+            deleteArr.value = val.map(item=>item.itemId)
+        }else if(props.tableSetting[0].prop === 'measureCode'){
+            deleteArr.value = val.map(item=>item.measureId)
+        }
         console.log(deleteArr.value,'要删除的数组');
+
+        // deleteArr.value = val.map(item=>item.itemId)
+        // console.log(deleteArr.value,'要删除的数组');
+
     }
     // 将要删除的id暴露给父组件
     defineExpose({
