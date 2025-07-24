@@ -185,3 +185,275 @@ export function updataUnitData(data){
   })
 }
 
+// 物料产品分类--------------------------------------------------
+
+// 物料产品分类    /mes/md/itemtype/list------------------------------------------------
+export function getItemTypeTableData(params){
+  return request({
+    url:'/mes/md/itemtype/list',
+    method:'get',
+    params
+  })
+}
+
+// 物料产品分类 搜索数据   /mes/md/itemtype/list
+export function searchItemType(params){
+  return request({
+    url:'/mes/md/itemtype/list',
+    method:'get',
+    params:{
+     itemTypeName:params.itemTypeName,
+     enableFlag:params.enableFlag
+    }
+  })
+}
+
+// 物料产品分类 删除    /mes/md/itemtype/
+export function deleteItemTypeData(id){
+  return request({
+    url:'/mes/md/itemtype/'+id,
+    method:'delete'
+  })
+}
+
+// // 物料产品  点击新增会直接调用一个请求  list
+// export function getItemTypeList(){
+//   return request({
+//     url:'/mes/md/itemtype/list',
+//     method:'get'
+//   })
+// }
+
+
+export function submitItemTypeData(data){
+  return request({
+    url:'/mes/md/itemtype',
+    method:'post',
+    data
+  })
+}
+
+// 数据回显  根据id搜索对应的数据 /mes/md/itemtype/
+export function getItemTypeDataById(id){
+  return request({
+    url:'/mes/md/itemtype/'+id,
+    method:'get'
+  })
+}
+
+// 修改弹窗  提交数据  /mes/md/itemtype
+
+export function submitEditItemTypeData(data){
+  return request({
+    url:'/mes/md/itemtype',
+    method:'put',
+    data
+  })
+}
+
+
+
+// 客户管理------------------------------------------
+// 获取客户数据 /mes/md/client/list
+export function getClientTableData(params){
+  return request({
+    url:'/mes/md/client/list',
+    method:'get',
+    params
+  })
+}
+// 提交数据  /mes/md/client
+export function submitClientData(data){
+  return request({
+    url:'/mes/md/client',
+    method:'post',
+    data
+  })
+}
+
+
+// 搜索数据 /mes/md/client/list
+export function searchClient(params){
+  return request({
+    url:'/mes/md/client/list',
+    method:'get',
+    params
+  })
+}
+
+
+// 删除数据 /mes/md/client/
+export function deleteClientData(id){
+  return request({
+    url:'/mes/md/client/'+id,
+    method:'delete'
+  })
+}
+
+// 新增弹窗  自动生成客户编码  system/autocode/get/CLIENT_CODE
+export function getClientCode(){
+  return request({
+    url:'/system/autocode/get/CLIENT_CODE',
+    method:'get'
+  })
+}
+
+// 数据回显  /mes/md/client/  根据id 获取数据
+export function getClientDataById(id){
+  return request({
+    url:'/mes/md/client/'+id,
+    method:'get'
+  })
+}
+// 修改数据提交 /mes/md/client
+export function submitEditClientData(data){
+  return request({
+    url:'/mes/md/client',
+    method:'put',
+    data
+  })
+}
+
+// 产品清单    获取id对应的数据
+export function getProductRecordTableData(id){
+  return request({
+    url:'/mes/wm/productsales/getItem/'+id,
+    method:'get'
+  })
+}
+
+// 销售记录  获取id对应的数据
+export function getSalesRecords(id){
+  return request({
+    url:'/mes/wm/productsales/getSaleRecord/'+id,
+    method:'get'
+  })
+}
+
+
+// 供应商管理-------------------------------------------------
+// 获取数据  /mes/md/vendor/list
+export function getVendorTableData(params){
+  return request({
+    url:'/mes/md/vendor/list',
+    method:'get',
+    params
+  })
+}
+// 自动生成 供应商编码
+export function getVendorCode(){
+  return request({
+    url:'/system/autocode/get/VENDOR_CODE',
+    method:'get'
+  })
+}
+// 提交数据 /mes/md/vendor
+export function submitVendorData(data){
+  return request({
+    url:'/mes/md/vendor',
+    method:'post',
+    data
+  })
+}
+
+
+// 删除  /mes/md/vendor/
+export function deleteVendorData(id){
+  return request({
+    url:'/mes/md/vendor/'+id,
+    method:'delete'
+  })
+}
+
+// 修改：  通过id获取对应数据  /mes/md/vendor/
+export function getVendorDataById(id){
+  return request({
+    url:'/mes/md/vendor/'+id,
+    method:'get'
+  })
+}
+// 修改：提交数据   /mes/md/vendor
+export function submitEditVendorData(data){
+  return request({
+    url:'/mes/md/vendor',
+    method:'put',
+    data
+  })
+}
+
+// 车间设置------------------------------------
+// 获取数据  /mes/md/workshop/list
+export function getWorkShopTableData(params){
+  return request({
+    url:'/mes/md/workshop/list',
+    method:'get',
+    params
+  })
+}
+// 搜索数据  /mes/md/workshop/list
+export function searchWorkShop(params){
+  return request({
+    url:'/mes/md/workshop/list',
+    method:'get',
+    params
+  })
+}
+
+// 删除 /mes/md/workshop/
+export function deleteWorkShopData(id){
+  return request({
+    url:'/mes/md/workshop/'+id,
+    method:'delete'
+  })
+}
+
+// 新增数据  /mes/md/workshop
+export function submitWorkShopData(data){
+  return request({
+    url:'/mes/md/workshop',
+    method:'post',
+    data
+  })
+}
+
+// 获取 点击放大镜后界面的树形数据  /system/dept/treeselect
+export function getTreeSelectData(){
+  return request({
+    url:'/system/dept/treeselect',
+    method:'get'
+  })
+}
+
+// 获取人员选择数据  /system/user/list
+export function getUserSelectData(params){
+  return request({
+    url:'/system/user/list',
+    method:'get',
+    params
+  })
+}
+// 自动生成  /system/autocode/get/WORKSHOP_CODE
+export function getWorkshopCode(){
+  return request({
+    url:'/system/autocode/get/WORKSHOP_CODE',
+    method:'get'
+  })
+}
+
+// 获取getBarcodeUrl  /mes/wm/barcode/getBarcodeUrl
+export function getWorkshopBarcodeUrl(params){
+  return request({
+    url:'/mes/wm/barcode/getBarcodeUrl',
+    method:'get',
+    params
+  })
+}
+
+// 查看 某条数据 /mes/md/workshop/
+export function getWorkshopDataById(id){
+  return request({
+    url:'/mes/md/workshop/'+id,
+    method:'get'
+  })
+}
+

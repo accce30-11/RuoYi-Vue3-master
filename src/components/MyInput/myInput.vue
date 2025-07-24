@@ -5,23 +5,25 @@
                 v-for="item in inputConfigs"
                 :key="item.prop"
                 :label="item.label">
-                <el-input
+
+                 <!-- 如果需要插槽渲染，则渲染插槽 -->
+                <template v-if="item.slotStatus">
+                    <slot :name="item.prop" ></slot>
+                </template>
+                  <el-input    
+                    v-else    
+                  
                     :placeholder="item.placeholder"
                     v-model="inputForm[item.prop]"
-                ></el-input>
-                <template #default='scope' v-if="item.slotStatus">
-                    <slot :name="item.prop" :scoped="scope.row"></slot>
-                </template>
+                />
+                
+
             </el-form-item>
 
-            <!-- <el-form-item label="物料名称">
-                <el-input 
-                     placeholder="请输入物料名称"
-                     v-model="inputFrom.materialName"
-                 ></el-input>
-            </el-form-item> -->
-            <!-- 插槽 -->
-             
+            
+              <!-- <template #default='scope' v-if="item.slotStatus">
+                    <slot :name="item.prop" :scoped="scope.row"></slot>
+                </template> -->
 
             <el-form-item>
                 <el-button :icon="Search" 
@@ -65,7 +67,7 @@ const props = defineProps({
 // 搜索按钮  
 const handleSearch=()=>{
     // // 执行查询操作
-    // console.log(inputFrom.value,'文本框中的内容')
+    console.log(inputForm.value,'文本框中的内容')
     // 通知父组件 父组件接收到
     emit('searchInputData',inputForm.value)
     // 清空数据
@@ -100,7 +102,10 @@ watch(
   (newConfigs) => {
     const form = {}
     newConfigs.forEach(config => {
-      form[config.prop] = ''
+      // 只提交非插槽的字段,插槽的字段数值在父组件中得到
+      if(!config.slotStatus){
+         form[config.prop] = ''
+      }
     })
     inputForm.value = form
   },

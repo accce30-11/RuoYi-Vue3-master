@@ -3,8 +3,28 @@
         <el-table 
                  :data="tableData" 
                  style="width: 100%;height: 600px;"
-                 @selection-change="handleSelectionChange">
-            <el-table-column type="selection" 
+                 @selection-change="handleSelectionChange"
+                 @row-click="handleRadioChange"
+                 highlight-current-row
+                 >
+            <!--前置 radio -->
+            <el-table-column
+                v-if="isRadio"
+                width="55"
+                align="center"
+                >
+                <template #default="scope">
+                    <el-radio
+                        :model-value="selectRow"
+                        :label="scope.row"
+                        @change="handleRadioChange(scope.row)">
+                        &nbsp;  
+                    </el-radio>
+                </template>
+            </el-table-column>
+            <el-table-column 
+                             v-if="!isRadio"
+                             type="selection" 
                              width="55" ></el-table-column>
                              <!-- :selectable="selectable" -->
             <el-table-column v-for="item in tableSetting" 
@@ -81,6 +101,15 @@
             deleteArr.value = val.map(item=>item.itemId)
         }else if(props.tableSetting[0].prop === 'measureCode'){
             deleteArr.value = val.map(item=>item.measureId)
+        }else if(props.tableSetting[0].prop === 'clientCode'){
+            deleteArr.value = val.map(item=>item.clientId)
+        }else if(props.tableSetting[0].prop === 'vendorCode'){
+            deleteArr.value = val.map(item=>item.vendorId)
+        }else if(props.tableSetting[0].prop === 'workshopCode'){
+            deleteArr.value = val.map(item=>item.workshopId)
+        }else if(props.tableSetting[0].prop === 'userName'){
+            // 返回整条数据
+            deleteArr.value = val.map(item=>item)
         }
         console.log(deleteArr.value,'要删除的数组');
 
@@ -88,6 +117,30 @@
         // console.log(deleteArr.value,'要删除的数组');
 
     }
+    // radio
+    const selectRow = ref(null)
+
+    const isRadio = computed(() => {
+        return props.tableSetting.some(item=>item.radio == true)
+    })
+
+    const handleRadioChange = (row) => {
+        selectRow.value = row
+        deleteArr.value = [getRowId(row)]
+        console.log(deleteArr.value,'选中的数据');
+    }
+    const getRowId = (row) => {
+        if(props.tableSetting[0].prop === 'itemCode') return row.itemId
+        if(props.tableSetting[0].prop === 'measureCode') return row.measureId
+        if(props.tableSetting[0].prop === 'clientCode') return row.clientId
+        if(props.tableSetting[0].prop === 'vendorCode') return row.vendorId
+        if(props.tableSetting[0].prop === 'workshopCode') return row.workshopId
+        if(props.tableSetting[0].prop === 'userName') return row
+        return null
+    }
+
+
+
     // 将要删除的id暴露给父组件
     defineExpose({
         deleteArr

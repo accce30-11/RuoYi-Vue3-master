@@ -8,12 +8,13 @@
      @input="searchTreeData"
   ></el-input>
     <el-tree
-    style="max-width: 600px;margin-top: 15px;"
+    style="max-width: 250px;margin-top: 15px;"
     :data="localTreeData"
     :props="{id: 'id', label: 'label', children: 'children'}"
     :height="208"
     default-expand-all
     @node-click="handleNodeClick"
+    :expand-on-click-node=false
   />
 </template>
 <script setup>
