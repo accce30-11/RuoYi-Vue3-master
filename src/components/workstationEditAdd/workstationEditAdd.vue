@@ -83,10 +83,38 @@
                     <el-mention type="textarea" v-model="workstationForm.remark" />
                 </el-form-item>
 
+            <div>
+               <el-divider>
+                  <span>工作站资源</span>
+                </el-divider>
+                <el-carousel type="card" height="200px" >
+                  <el-carousel-item>
+                    <el-card class="carousel-content">
+                      <template #header>
+                        <div class="card-header">
+                          <span>Card name</span>
+                        </div>
+                    </template>
+                    <span>内容内容</span>
+                    <p>内容</p>
+                     <template #footer>Footer content</template>
+                    </el-card>
+                  </el-carousel-item>
+              
+                  <el-carousel-item>
+                    <el-card class="carousel-content">
+                      卡片2
+                    </el-card>
+                  </el-carousel-item>
+              
+                  <el-carousel-item>
+                    <el-card class="carousel-content">
+                     卡片3
+                    </el-card>
+                  </el-carousel-item>
+                </el-carousel>
+            </div>
             </el-form>
-
-            
-
             <template #footer>
                 <div>
                     <el-button @click="cancel">关闭</el-button>
@@ -267,4 +295,25 @@ watch(()=>prop.popwindowStatus, async(newVal, oldVal) => {
 
 
 </script>
-<style scoped></style>
+<style scoped>
+.carousel-content {
+  /* height: 100%;
+  width: 100%;
+  border: 1px solid;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  font-size: 18px;
+  background-color: #ffffff; */
+}
+.el-carousel-item{
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+
+</style>
