@@ -191,10 +191,23 @@ getAllWorkShopData()
 
 
 // 修改 
-const editUnit=(id)=>{
+const editUnit=async(id)=>{
     console.log('要修改数据的id',id);
-    popwindowTitle.value = '修改供应商'
-    // popwindowStatus.value = true
+    popwindowTitle.value = '修改车间'
+    popwindowStatus.value = true
+
+    try {
+        let {code,msg,data} = await getWorkshopDataById(id)
+        if(code == 200){
+            ElMessage.success('获取车间数据'+msg)
+            backShowData.value = data
+        }else{
+            ElMessage.error('获取车间数据'+msg)
+        }
+    } catch (error) {
+        console.log(error,'error');
+        
+    }
 }
 // 删除 弹窗
 const deleteUnit=(data)=>{
@@ -222,7 +235,7 @@ const confirmDelete=async()=>{
     }
 }
 
-// 搜索 车间数据  师傅师傅
+// 搜索 车间数据  
 const  searchWorkShopData =async(data)=>{
     searchdata.value = data
     // console.log(searchdata.value,'searchdata.value');
@@ -255,6 +268,11 @@ const addNew=()=>{
     popwindowTitle.value = '添加车间'
     popwindowStatus.value = true
 }
+// 修改
+const editData=()=>{
+    console.log(mytable.value.deleteArr,'mytable.value.deleteArr')
+    editUnit((mytable.value.deleteArr).toString())
+}
 
 // 查看车间
 const lookWorkShopData=async(id)=>{
@@ -275,6 +293,10 @@ const lookWorkShopData=async(id)=>{
     }
 }
 
+
+const delAll=()=>{
+    deleteUnit((mytable.value.deleteArr).toString())
+}
 
 
 // 分页器相关

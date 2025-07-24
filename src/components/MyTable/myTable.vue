@@ -110,6 +110,8 @@
         }else if(props.tableSetting[0].prop === 'userName'){
             // 返回整条数据
             deleteArr.value = val.map(item=>item)
+        }else if(props.tableSetting[0].prop === 'workstationCode'){
+            deleteArr.value = val.map(item=>item.workstationId)
         }
         console.log(deleteArr.value,'要删除的数组');
 
@@ -135,6 +137,7 @@
         if(props.tableSetting[0].prop === 'clientCode') return row.clientId
         if(props.tableSetting[0].prop === 'vendorCode') return row.vendorId
         if(props.tableSetting[0].prop === 'workshopCode') return row.workshopId
+        if(props.tableSetting[0].prop === 'workstationCode') return row.workstationId
         if(props.tableSetting[0].prop === 'userName') return row
         return null
     }

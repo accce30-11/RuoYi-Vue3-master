@@ -91,7 +91,7 @@
 <script setup>
 import personalSelection from '../workShopPersonSelect/personalSelection.vue'
 import { Search } from '@element-plus/icons-vue'
-import {submitWorkShopData,getTreeSelectData,getWorkshopCode,getWorkshopBarcodeUrl} from '@/api/mainData/mainData.js'
+import {submitWorkShopData,getTreeSelectData,getWorkshopCode,getWorkshopBarcodeUrl,submitEditWorkshopData} from '@/api/mainData/mainData.js'
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus';
 
@@ -145,6 +145,7 @@ const barcodeUrlData = ref({
 
     // 关闭弹窗
     const cancel=()=>{
+        clear() 
         emit('update:popwindowStatus',false)
     }
     // 确认添加
@@ -219,6 +220,36 @@ const switchChange=async()=>{
         }
 }
 
+// 确认修改   submitEditWorkshopData
+const editForm=async()=>{
+    try {
+        let {code,msg} = await submitEditWorkshopData(workShopForm.value)
+        if(code === 200){
+            ElMessage.success('修改车间数据'+msg)
+            // clearForm()
+            emit('emitParentUpdata')
+            emit('update:popwindowStatus', false)
+        }else{
+           ElMessage.error('修改车间数据'+msg)
+        emit('update:popwindowStatus', false)
+        }
+       } catch (error) {
+         console.log(error);
+       }
+}
+// 清空数据
+const clear=()=>{
+    switchValue.value = false
+    workShopForm.value = {
+        workshopCode:'',//车间编码
+        workshopName:'',//车间名称
+        area:'',//面积
+        charge:'',//负责人
+        chargeId:'',//负责人id
+        enableFlag:'Y',//是否启用
+        remark:'',//备注
+    }
+}
 
 // 监听popwindowStatus，当为true时，获取treeData
 watch(() => prop.popwindowStatus, (newVal, oldVal) => {

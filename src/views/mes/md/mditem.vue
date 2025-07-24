@@ -103,7 +103,6 @@
                                        >标签打印</el-button>
                             </div>
                          </template>
-
                 </myTable>
             </div>
         </div>

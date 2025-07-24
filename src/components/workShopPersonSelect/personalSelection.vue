@@ -1,7 +1,7 @@
 <template>
     <div>
     <el-dialog
-      style="width: 90%; position: relative;" 
+      style="width: 70%; position: relative;" 
       :close-on-press-escape='false'
       :close-on-click-modal="false"
       :show-close="false"
@@ -9,24 +9,19 @@
       :model-value="popwindowStatus1"
       @update:popwindowStatus="emitVisibleChange"
     >
-
-      <div style="position: relative;">
-        <div style="position: absolute; top: 5px; right: 400px; z-index: 10;">
-          <myInput
-            :inputConfigs="inputConfigs"
-            @searchInputData="searchClientData"
-            @clearSearchData="clearSearchData"
-          />
-        </div>
-        
-        
-
         <!-- 树形结构 -->
+    <div style="display: flex;justify-content: space-evenly;">
         <treev2
           :treeData="treeData"
           @getTreeData="getTreeTableData">
         </treev2>
 
+      <div style="display: flex;flex-direction: column;">
+          <myInput
+            :inputConfigs="inputConfigs"
+            @searchInputData="searchClientData"
+            @clearSearchData="clearSearchData"
+          />
         <myTable
             ref="mytable"
             :tableData="tableData"
@@ -41,6 +36,7 @@
         </template>
         </myTable>
       </div>
+    </div>
 
       <template #footer>
         <div>
@@ -57,7 +53,8 @@ import myTable from '@/components/MyTable/myTable.vue'
 import myInput from '@/components/MyInput/myInput.vue'
 import {getUserSelectData,searchWorkShop} from '@/api/mainData/mainData.js'
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage,ElNotification  } from 'element-plus'
+
 
 const mytable = ref(null)
 const tableData = ref([])
@@ -169,11 +166,22 @@ const clearSearchData=()=>{
 }
 
 const cancel=()=>{
+    // 清空数据
+
     emit('update:popwindowStatus1',false)
 }
 
 const confirm=()=>{
-    // 获取负责人数据
+    // 获取负责人数据  判断至少选中一条数据
+    if(mytable.value.deleteArr.length <= 0){
+        ElNotification({
+            title: '提示',
+            message: '至少选择一个数据！',
+            type: 'warning',
+        })
+        return
+    }
+    // 赋值负责人数据
     chargeData.value.nickName = mytable.value.deleteArr[0].nickName
     chargeData.value.userId = mytable.value.deleteArr[0].userId
     // console.log(chargeData.value,'测试一下');
@@ -229,6 +237,7 @@ const updateCurrentPage = (page) => {
 
     getUserData()
 }
+
 
 </script>
 <style scoped>

@@ -457,3 +457,92 @@ export function getWorkshopDataById(id){
   })
 }
 
+// 修改：确认修改  /mes/md/workshop
+export function submitEditWorkshopData(data){
+  return request({
+    url:'/mes/md/workshop',
+    method:'put',
+    data
+  })
+}
+
+// 工作站---------------------------------------------------
+// 获取工作站table数据  /mes/md/workstation/list
+export function getWorkstationTableData(params){
+  return request({
+    url:'/mes/md/workstation/list',
+    method:'get',
+    params
+  })
+}
+ 
+// 获取所在车间名称   /mes/md/workshop/listAll
+export function getWorkshopData(params){
+  return request({
+    url:'/mes/md/workshop/listAll',
+    method:'get',
+    params
+  })
+}
+
+
+// 获取所属工序的数据  /mes/pro/process/listAll
+export function getProcessData(params){
+  return request({
+    url:'/mes/pro/process/listAll',
+    method:'get',
+    params
+  })
+}
+
+// 删除数据  /mes/md/workstation/
+export function deleteWorkStation(id){
+  return request({
+    url:'/mes/md/workstation/'+id,
+    method:'delete',
+  })
+}
+
+// 获取工作站编号  /system/autocode/get/WORKSTATION_CODE
+export function getWORKSTATION_CODE(params){
+  return request({
+    url:'/system/autocode/get/WORKSTATION_CODE',
+    method:'get',
+    params
+  })
+}
+// 携带编号  请求  /mes/wm/barcode/getBarcodeUrl
+export function getWorkStationBarcodeUrl(params){
+  return request({
+    url:'/mes/wm/barcode/getBarcodeUrl',
+    method:'get',
+    params
+  })
+}
+
+
+// 提交数据  /mes/md/workstation
+export function submitWorkStationData(data){
+  return request({
+    url:'/mes/md/workstation',
+    method:'post',
+    data
+  })
+}
+
+// 数据修改  回显 /mes/md/workstation/
+export function backShowEditWorkStationData(id){
+  return request({
+    url:'/mes/md/workstation/'+id,
+    method:'get',
+  })
+}
+
+// 修改后的数据提交  /mes/md/workstation
+export function submitEditWorkStationData(data){
+  return request({
+    url:'/mes/md/workstation',
+    method:'put',
+    data
+  })
+}

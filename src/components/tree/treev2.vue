@@ -1,4 +1,5 @@
 <template>
+  <div style="display: flex;flex-direction: column;">
   <el-input
      style="width: 240px" 
      placeholder="请输入分类名称"
@@ -16,6 +17,7 @@
     @node-click="handleNodeClick"
     :expand-on-click-node=false
   />
+  </div>
 </template>
 <script setup>
 // import { Search } from '@element-plus/icons-vue'
