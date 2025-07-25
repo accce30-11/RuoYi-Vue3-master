@@ -546,3 +546,38 @@ export function submitEditWorkStationData(data){
     data
   })
 }
+
+// 查询设备资源    数据   /mes/md/workstationmachine/list
+export function getWorkstationMachineTableData(params){
+  return request({
+    url:'/mes/md/workstationmachine/list',
+    method:'get',
+    params
+  })
+}
+// 设备资源  删除  /mes/md/workstationmachine/
+export function deleteWorkstationMachine(id){
+  return request({
+    url:'/mes/md/workstationmachine/'+id,
+    method:'delete',
+  })
+}
+
+// 获取设备选择左侧树形数据  /mes/dv/machinerytype/list
+
+export function getManchineTreeListData(){
+  return request({
+    url:'/mes/dv/machinerytype/list',
+    method:'get',
+  })
+}
+// 获取设备选择 table数据  /mes/dv/machinery/list
+
+export function getManchineTableData(params){
+  return request({
+    url:'/mes/dv/machinery/list',
+    method:'get',
+    params
+  })
+}
+

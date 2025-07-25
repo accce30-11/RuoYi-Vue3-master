@@ -1,11 +1,11 @@
 <template>
     <div>
         <el-table 
-                 :data="tableData" 
-                 style="width: 100%;height: 600px;"
-                 @selection-change="handleSelectionChange"
-                 @row-click="handleRadioChange"
-                 highlight-current-row
+                :data="tableData" 
+                style="width: 100%;height: 600px;"
+                @selection-change="handleSelectionChange"
+                @row-click="handleRadioChange"
+                highlight-current-row
                  >
             <!--前置 radio -->
             <el-table-column

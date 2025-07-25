@@ -11,7 +11,7 @@
     <el-tree
     style="max-width: 250px;margin-top: 15px;"
     :data="localTreeData"
-    :props="{id: 'id', label: 'label', children: 'children'}"
+    :props="treeProps"
     :height="208"
     default-expand-all
     @node-click="handleNodeClick"
@@ -21,6 +21,7 @@
 </template>
 <script setup>
 // import { Search } from '@element-plus/icons-vue'
+import { computed } from 'vue';
 import { onMounted,watch} from 'vue';
 
 // 搜索框
@@ -63,15 +64,23 @@ const filterTree = (tree, keyword) => {
     if (newNode.children) {
       newNode.children = filterTree(newNode.children, keyword)
     }
-    const isMatch = newNode.label.includes(keyword)
+
+    // 使用 props 中配置的 label 字段
+    const labelField = treeProps.value.label
+    const nodeLabel = newNode[labelField] ?? ''
+
+    const isMatch = nodeLabel.includes(keyword)
     const hasChildren = newNode.children && newNode.children.length > 0
 
     if (isMatch || hasChildren) {
       filtered.push(newNode)
     }
   }
+
   return filtered
 }
+
+
 // 自定义深拷贝
 function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj))
@@ -96,17 +105,31 @@ function deepClone(obj) {
     
   }
 // tree每一项点击事件
-const handleNodeClick=(data,node,component)=>{
+const handleNodeClick = (data, node, component) => {
   console.log('点击的节点数据：', data)
-  console.log('该项的id为(子):',data.id);
-  treeId.value = data.id
-  // console.log('节点本身：', node)
-  // console.log('整个组件：', component)
-  // 通知父组件 向父组件传递treeId
-  emit('getTreeData',treeId.value)
 
+  const idField = treeProps.value.id
+  const currentId = data[idField]
+
+  console.log('该项的id为(子):', currentId)
+
+  treeId.value = currentId
+
+  // 通知父组件 向父组件传递 treeId
+  emit('getTreeData', treeId.value)
 }
 
+
+
+const treeProps = computed(() => {
+  const sample = props.treeData?.[0] || {};
+  const useCustomProps =
+    'machineryTypeId' in sample && 'machineryTypeName' in sample;
+
+  return useCustomProps
+    ? { id: 'machineryTypeId', label: 'machineryTypeName', children: 'children' }
+    : { id: 'id', label: 'label', children: 'children' };
+});
 
   onMounted(()=>{
     

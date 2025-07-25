@@ -92,12 +92,29 @@
                     <el-card class="carousel-content">
                       <template #header>
                         <div class="card-header">
-                          <span>Card name</span>
+                          <span>设备资源</span>
+                          <el-button
+                            plain
+                            type="primary"
+                            link
+                            @click="addManchine"
+                            >新增</el-button>
                         </div>
                     </template>
-                    <span>内容内容</span>
-                    <p>内容</p>
-                     <template #footer>Footer content</template>
+                       <workStationEditTable
+                        :tableData="tableData"
+                        :tableSetting="tableSetting"
+                       >
+                       <template #operation="{scoped}">
+                            <el-button 
+                                link
+                                size="small"
+                                type="primary"
+                                icon="Delete"
+                                @click="deleteUnit(scoped.recordId)">
+                                删除</el-button>
+                       </template>
+                    </workStationEditTable>
                     </el-card>
                   </el-carousel-item>
               
@@ -127,12 +144,56 @@
                 </div>
             </template>
         </el-dialog>
+        <!-- 设备选择弹窗 -->
+        <MachineSelectionDialog
+            :treeData="treeData"
+            :tableData="tableData"
+            :popwindowTitle1="popwindowTitle1"
+            :popwindowStatus1="popwindowStatus1"
+             v-model:popwindowStatus1="popwindowStatus1"
+        ></MachineSelectionDialog>
+
     </div>
 </template>
 <script setup>
 import { ref, watch } from 'vue'
-import { getWORKSTATION_CODE,submitWorkStationData,getWorkStationBarcodeUrl,getWorkshopData,getProcessData,submitEditWorkStationData } from '@/api/mainData/mainData.js'
-import { ElMessage } from 'element-plus'
+import MachineSelectionDialog from '../MachineSelection/MachineSelectionDialog.vue'
+import workStationEditTable from '../workstationEditTable/workStationEditTable.vue'
+import { getWORKSTATION_CODE,submitWorkStationData,getWorkStationBarcodeUrl,getWorkshopData,getProcessData,submitEditWorkStationData,getWorkstationMachineTableData,deleteWorkstationMachine,getManchineTreeListData,getManchineTableData } from '@/api/mainData/mainData.js'
+import { ElMessage, ElNotification } from 'element-plus'
+
+
+const popwindowTitle1 = ref('');
+const popwindowStatus1 = ref(false);
+const treeData = ref({})
+
+// 查询设备资源 所需参数
+const workstationmachine = ref({
+    pageNum:1,
+    pageSize:10,
+    workstationId:0
+})
+
+const tableData = ref([])
+const tableSetting = ref([
+    {
+        label:'设备编号',
+        prop:'machineryCode'
+    },
+    {
+        label:'设备名称',
+        prop:'machineryName'
+    },
+    {
+        label:'数量',
+        prop:'quantity'
+    },
+    {
+        label:'操作',
+        prop:'operation',
+        slotStatus:true
+    }
+])
 
 const workstationForm = ref({
     workstationCode:'',//工作站编号
@@ -174,7 +235,13 @@ const prop = defineProps({
     backShowData: {
         type: Object,
         default: () => ({})
-    }})
+    },
+    // 要修改数据的id，本界面根据该id调用请求，搜索用户的数据
+    editWorkstationId:{
+        type:Number,
+        default: () => 0
+    }
+})
 // 发送子组件的弹窗状态
 const emit = defineEmits(['update:popwindowStatus', 'emitVisibleChange', 'emitWorkStationData'])
 function emitVisibleChange(val) {
@@ -249,6 +316,76 @@ const switchChange=async()=>{
         }
 }
 
+// 获取设备资源  封装
+const getWorkstationMachineData = async(id)=>{
+    try {
+            let {code,msg,rows,total} =  await getWorkstationMachineTableData(workstationmachine.value)
+            if(code == 200){
+                ElMessage.success('获取数据'+msg);
+                console.log(rows,'rows');
+                tableData.value = rows;
+                
+            }else{
+                ElMessage.error('获取数据'+msg);
+            }
+        } catch (error) {
+            console.log(error,'设备资源');
+            
+        }
+        
+    }
+// 获取  设备资源中设备选择的树形数据  需要整理数据
+const getMachineTreeData = async()=>{
+    // console.log( await getManchineTreeListData(),'getMachineTreeData');
+    try {
+        let {code,msg,data} = await getManchineTreeListData()
+        if(code == 200){
+            ElMessage.success('获取数据'+msg);
+            console.log(data,'data');
+            
+            treeData.value = listToTree(data)
+            console.log(treeData.value,'treeData');
+        }else{
+            ElMessage.error('获取数据'+msg);
+        }
+    } catch (error) {
+        console.log(error,'获取数据失败');
+        
+    }
+}
+
+
+
+// 设备资源  删除
+const deleteUnit = async(id)=>{
+    try {
+        let {code,msg} = await deleteWorkstationMachine(id)
+        if(code === 200){
+            ElNotification({
+                title: '删除成功',
+                message: msg,
+                type:'success',
+            })
+            // 刷新数据
+            getWorkstationMachineData()
+        }else{
+            ElNotification({
+                title: '删除失败',
+                message: msg,
+                type: 'error',
+            })
+        }
+    } catch (error) {
+        console.log(error,'删除数据失败');   
+    }
+}
+// 设备资源新增
+const addManchine =()=>{
+    popwindowTitle1.value = '设备选择'
+    popwindowStatus1.value = true  
+}
+
+
 watch(()=>prop.popwindowStatus, async(newVal, oldVal) => {
     if(newVal){
         try {
@@ -264,6 +401,8 @@ watch(()=>prop.popwindowStatus, async(newVal, oldVal) => {
             console.log(error,'获取车间数据失败');
             
         }
+
+       
         
     }
 })
@@ -285,35 +424,68 @@ watch(()=>prop.popwindowStatus, async(newVal, oldVal) => {
         
     }
 })
+watch(()=>prop.popwindowStatus, async(newVal, oldVal) => {
+    if(newVal){
+        // 获取tree数据
+        getMachineTreeData()
+    }
+})
 // 监听数据  数据变化  回显
-    watch(()=>prop.backShowData,(newVal)=>{
+watch(()=>prop.backShowData,(newVal)=>{
         if(newVal){
             // 回显数据
             workstationForm.value = {...newVal}
         }
-    })
+})
+
+// 监听用户点击的某一项的id，变化  调用接口
+watch(()=>prop.editWorkstationId,async(newVal)=>{
+    if(newVal){
+        // console.log('子组件ID收到  变化',newVal);
+        workstationmachine.value.workstationId = newVal;
+        // console.log(workstationmachine.value,'workstationmachine');
+        // 调用接口
+        getWorkstationMachineData(workstationmachine.value)
+    }
+})
+
+// 将获取的数据（扁平数据）处理为树形数据
+function listToTree(data, idKey = 'machineryTypeId', parentKey = 'parentTypeId', childrenKey = 'children') {
+  const map = {};
+  const tree = [];
+
+  // 先遍历一遍，生成一个 id -> item 的 map
+  data.forEach(item => {
+    map[item[idKey]] = { ...item, [childrenKey]: [] };
+  });
+
+  // 再次遍历构造树形结构
+  data.forEach(item => {
+    const parentId = item[parentKey];
+    const treeItem = map[item[idKey]];
+    if (parentId === 0 || parentId == null || !map[parentId]) {
+      // 没有父级，作为根节点
+      tree.push(treeItem);
+    } else {
+      // 加入父节点的 children 中
+      map[parentId][childrenKey].push(treeItem);
+    }
+  });
+
+  return tree;
+}
+
 
 
 </script>
 <style scoped>
-.carousel-content {
-  /* height: 100%;
-  width: 100%;
-  border: 1px solid;
-  
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #333;
-  font-size: 18px;
-  background-color: #ffffff; */
-}
-.el-carousel-item{
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-radius: 10px;
-    overflow: hidden;
-}
+
+
+ .card-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+ }
 
 
 </style>

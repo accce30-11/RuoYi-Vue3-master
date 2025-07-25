@@ -118,6 +118,7 @@
             v-model:popwindowStatus="popwindowStatus"   
             @emitWorkStationData="emitWorkStationData"
             :backShowData="backShowData"
+            :editWorkstationId="editWorkstationId"
             ></workstationEditAdd>
     </div>
 </template>
@@ -192,6 +193,8 @@ const tableData = ref([])
 // const workstationName = ref('')
 // 要删除的id
 const workstationId = ref('')
+// 要修改数据的id  
+const editWorkstationId = ref('')
 // 分页器相关
 const tableTotal = ref(0)
 // 页码 条数
@@ -347,6 +350,9 @@ const confirmDelete = async()=>{
 // 操作：修改
 const editUnit=async(id)=>{
     console.log(id,'editUnit');
+    editWorkstationId.value = id
+    // console.log(editWorkstationId.value,'editWorkstationId');
+    
     popwindowTitle.value = '修改工作站'
     popwindowStatus.value = true
    
