@@ -20,7 +20,7 @@
                             <!-- 自动生成文本和开关 -->
                             
                             <el-switch
-                                :disabled="popwindowTitle == '查看'" 
+                                :disabled="popwindowTitle == '查看工作站信息'" 
                                 active-text="自动生成" 
                                 v-model="switchValue"
                                 @change="switchChange"
@@ -66,7 +66,7 @@
                                 <el-radio-group  
                                     label="工作站地址"
                                     style="display: flex; align-items: center;"
-                                    :disabled="popwindowTitle =='查看'?true:false "
+                                    :disabled="popwindowTitle =='查看工作站信息'?true:false "
                                     v-model="workstationForm.enableFlag">
                                     <el-radio value="Y" size="large">是</el-radio>
                                     <el-radio value="N" size="large">否</el-radio>
@@ -83,7 +83,7 @@
                     <el-mention type="textarea" v-model="workstationForm.remark" />
                 </el-form-item>
 
-            <div>
+            <div  v-if="popwindowTitle == '修改工作站' ">
                <el-divider>
                   <span>工作站资源</span>
                 </el-divider>
@@ -120,13 +120,77 @@
               
                   <el-carousel-item>
                     <el-card class="carousel-content">
-                      卡片2
+                        <template #header>
+                        <div class="card-header">
+                          <span>人力资源</span>
+                          <el-button
+                            plain
+                            type="primary"
+                            link
+                            @click="addPerson"
+                            >新增</el-button>
+                        </div>
+                    </template>
+                        <workStationEditTable
+                            v-bind="{
+                                tableData:personTableData,
+                                tableSetting: personTableSetting,
+                            }">
+                            <template #operation="{scoped}">
+                                <el-button 
+                                    link
+                                    size="small"
+                                    type="primary"
+                                    icon="EditPen"
+                                    @click="editPerson(scoped.recordId)">
+                                    修改</el-button>
+                                <el-button 
+                                    link
+                                    size="small"
+                                    type="primary"
+                                    icon="Delete"
+                                    @click="deletePerson(scoped.recordId)">
+                                    删除</el-button>
+                            </template>
+                        </workStationEditTable>
                     </el-card>
                   </el-carousel-item>
               
                   <el-carousel-item>
                     <el-card class="carousel-content">
-                     卡片3
+                        <template #header>
+                        <div class="card-header">
+                          <span>人力资源</span>
+                          <el-button
+                            plain
+                            type="primary"
+                            link
+                            @click="addPerson"
+                            >新增</el-button>
+                        </div>
+                    </template>
+                        <workStationEditTable
+                            v-bind="{
+                                tableData:personTableData,
+                                tableSetting: personTableSetting,
+                            }">
+                            <template #operation="{scoped}">
+                                <el-button 
+                                    link
+                                    size="small"
+                                    type="primary"
+                                    icon="EditPen"
+                                    @click="editPerson(scoped.recordId)">
+                                    修改</el-button>
+                                <el-button 
+                                    link
+                                    size="small"
+                                    type="primary"
+                                    icon="Delete"
+                                    @click="deletePerson(scoped.recordId)">
+                                    删除</el-button>
+                            </template>
+                        </workStationEditTable>
                     </el-card>
                   </el-carousel-item>
                 </el-carousel>
@@ -140,12 +204,13 @@
                     </el-button>
 
                     <el-button v-else-if="popwindowTitle == '修改工作站'" type="primary" @click="editForm">修改</el-button>
-                    <!-- <el-button v-if="popwindowTitle == '查看' ">取消</el-button> -->
+                    <el-button v-if="popwindowTitle == '查看' ">取消</el-button>
                 </div>
             </template>
         </el-dialog>
         <!-- 设备选择弹窗 -->
         <MachineSelectionDialog
+            @emitManchineData="emitManchineData"
             :treeData="treeData"
             :tableData="tableData"
             :popwindowTitle1="popwindowTitle1"
@@ -153,19 +218,59 @@
              v-model:popwindowStatus1="popwindowStatus1"
         ></MachineSelectionDialog>
 
+        <!-- 添加人力资源弹窗 -->
+        <el-dialog 
+            v-model="personwindowStatus"
+            style="width: 30%;"
+            >
+                <template #header>
+                    <span>添加人力资源</span>
+                </template>
+                <el-form>
+                    <el-form-item label="岗位">
+                        <el-select v-model="submitAddPersonData.postId"  placeholder="请选择岗位" style="width: 240px">
+                          <el-option
+                            v-for="item in personSelectList"
+                            :key="item.value"
+                            :label="item.postName"
+                            :value="item.postId"
+                          />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="数量">
+                         <el-input-number v-model="submitAddPersonData.quantity" :min="1"  />
+                    </el-form-item>
+                </el-form>
+                <template #footer>
+                  <div class="dialog-footer">
+                    <el-button @click="personwindowStatus = false">取消</el-button>
+                    <el-button type="primary" @click="personConfirm" v-if="addEditTitle == '添加人力资源'">
+                      确定
+                    </el-button>
+                    <el-button type="primary" @click="confirmEdit" v-else-if="addEditTitle =='修改人力资源' ">修改</el-button>
+                  </div>
+                </template>
+        </el-dialog>
     </div>
 </template>
 <script setup>
 import { ref, watch } from 'vue'
 import MachineSelectionDialog from '../MachineSelection/MachineSelectionDialog.vue'
 import workStationEditTable from '../workstationEditTable/workStationEditTable.vue'
-import { getWORKSTATION_CODE,submitWorkStationData,getWorkStationBarcodeUrl,getWorkshopData,getProcessData,submitEditWorkStationData,getWorkstationMachineTableData,deleteWorkstationMachine,getManchineTreeListData,getManchineTableData } from '@/api/mainData/mainData.js'
+import { getWORKSTATION_CODE,submitWorkStationData,getWorkStationBarcodeUrl,
+        getWorkshopData,getProcessData,submitEditWorkStationData,getWorkstationMachineTableData,
+        deleteWorkstationMachine,getManchineTreeListData,getManchineTableData,
+        submitWorkstationMachineData,getworkstationworkerTabelData,deleteworkstationworker,
+        getworkerPositionTableData,submitWorkstationworkerData,getworkstationworkerById,submitEditWorkstationworkerData} from '@/api/mainData/mainData.js'
 import { ElMessage, ElNotification } from 'element-plus'
+import { useWorkstationStore } from '@/store/modules/workstationsId'
+const workstationStore = useWorkstationStore()
 
 
 const popwindowTitle1 = ref('');
 const popwindowStatus1 = ref(false);
 const treeData = ref({})
+
 
 // 查询设备资源 所需参数
 const workstationmachine = ref({
@@ -173,6 +278,7 @@ const workstationmachine = ref({
     pageSize:10,
     workstationId:0
 })
+
 
 const tableData = ref([])
 const tableSetting = ref([
@@ -194,6 +300,10 @@ const tableSetting = ref([
         slotStatus:true
     }
 ])
+
+// 设备资源需要提交的数据
+const submitMachineData = ref({
+})
 
 const workstationForm = ref({
     workstationCode:'',//工作站编号
@@ -219,12 +329,42 @@ const processOptions = ref([])
 // switch
 const switchValue = ref(false)
 
+// 人力资源 相关------------------------------------------------------------
+const personTableData = ref([])
+const personTableSetting = ref([
+    {
+        label:'岗位名称',
+        prop:'postName'
+    },
+    {
+        label:'数量',
+        prop:'quantity'
+    },
+    {
+        label:'操作',
+        prop:'operation',
+        slotStatus:true
+    }
+])
+// 添加人力资源弹窗状态
+const personwindowStatus = ref(false);
+// 下拉列表
+const personSelectList = ref([])
+// 人力资源弹窗 提交的数据   记得携带workstationId  这个已经存到pinia里面了
+const submitAddPersonData = ref({
+    postId:'',//岗位id
+    quantity:0//数量
+})
+
+//  新增修改弹窗标题
+const addEditTitle = ref('')
+
 // 接收
 const prop = defineProps({
     // 标题
     popwindowTitle: {
         type: String,
-        required: true
+        default: ''
     },
     // 窗口打开关闭状态
     popwindowStatus: {
@@ -271,9 +411,19 @@ const confirm = async () => {
 
 }
 const cancel = () => {
+    // 清除数据
+    workstationForm.value = {
+        workstationCode:'',//工作站编号
+        workstationName:'',//工作站名称
+        workstationAddress:'',//工作站地点
+        workshopId:'',//所属在车间
+        processId:'',//所属工序
+        enableFlag:'Y',//是否启用
+        remark:'',//备注
+    }
     emit('update:popwindowStatus', false)
 }
-// 修改
+// 修改  
 const editForm=async()=>{
     try {
         let {code,msg} = await submitEditWorkStationData(workstationForm.value)
@@ -317,23 +467,56 @@ const switchChange=async()=>{
 }
 
 // 获取设备资源  封装
-const getWorkstationMachineData = async(id)=>{
+const getWorkstationMachineData = async()=>{
     try {
             let {code,msg,rows,total} =  await getWorkstationMachineTableData(workstationmachine.value)
             if(code == 200){
-                ElMessage.success('获取数据'+msg);
+                ElMessage.success('获取设备资源数据'+msg);
                 console.log(rows,'rows');
                 tableData.value = rows;
                 
             }else{
-                ElMessage.error('获取数据'+msg);
+                ElMessage.error('获取设备资源数据'+msg);
             }
         } catch (error) {
-            console.log(error,'设备资源');
+            console.log(error,'设备设备资源资源');
             
         }
         
     }
+// 获取人力资源数据  封装
+const getWorkStationTableData = async()=>{
+    try {
+            let {code,msg,rows,total} =  await getworkstationworkerTabelData(workstationmachine.value)
+            if(code == 200){
+                ElMessage.success('获取人力资源数据'+msg);
+                console.log(rows,'rows');
+                personTableData.value = rows;
+                
+            }else{
+                ElMessage.error('获取人力资源数据'+msg);
+            }
+        } catch (error) {
+            console.log(error,'人力资源');   
+        }
+}
+// 获取人力资源  岗位列表数据 下拉列表
+const getWorkPositionData =async()=>{
+    // console.log(await getworkerPositionTableData(),'人力资源岗位数据');
+    try {
+        let {code,msg,data} = await getworkerPositionTableData()
+        if(code == 200){
+            ElMessage.success('人力资源岗位数据'+msg)
+            personSelectList.value = data
+        }else{
+            ElMessage.error('人力资源岗位数据'+msg)
+        }
+    } catch (error) {
+        console.log(error,'人力资源');
+        
+    }
+    
+}
 // 获取  设备资源中设备选择的树形数据  需要整理数据
 const getMachineTreeData = async()=>{
     // console.log( await getManchineTreeListData(),'getMachineTreeData');
@@ -384,6 +567,113 @@ const addManchine =()=>{
     popwindowTitle1.value = '设备选择'
     popwindowStatus1.value = true  
 }
+// 人力资源删除
+const deletePerson=async(id)=>{
+    console.log('该项的id',id);
+    try {
+        let {code,msg} = await deleteworkstationworker(id)
+        if(code === 200){
+            ElNotification({
+                title: '删除成功',
+                message: msg,
+                type:'success',
+            })
+            // 刷新数据
+            getWorkStationTableData()
+        }else{
+            ElNotification({
+                title: '删除失败',
+                message: msg,
+                type: 'error',
+            })
+        }
+    } catch (error) {
+        console.log(error,'删除数据失败');   
+    }
+}
+// 人力资源新增 修改
+const addPerson=()=>{
+    addEditTitle.value = '添加人力资源'
+    personwindowStatus.value = true
+}
+// 人力资源弹窗  确定按钮
+const personConfirm=async()=>{
+    try {
+        submitAddPersonData.value = {
+            ...submitAddPersonData.value,
+            workstationId:workstationStore.workstationId
+        }
+        let {code,msg} = await submitWorkstationworkerData(submitAddPersonData.value)
+        if(code == 200){
+            ElMessage.success('人力资源提交数据'+msg)
+            
+            // 刷新数据
+            getWorkStationTableData()
+            personwindowStatus.value = false
+        }else{
+            ElMessage.error('人力资源提交数据'+msg)
+            personwindowStatus.value = false
+        }
+    } catch (error) {
+        console.log(error,'error','提交数据失败');
+        
+    }
+    // 清空数据
+    submitAddPersonData.value = {
+        postId:'',//岗位id
+        quantity:0//数量
+    }
+    
+    // console.log('人力资源添加弹窗 表单数据',submitAddPersonData.value);
+    
+}
+// 修改
+const editPerson=async(id)=>{
+    console.log('修改',id);
+    personwindowStatus.value = true
+    addEditTitle.value = '修改人力资源'
+    // 查询id对应的数据  数据回显
+    // console.log(await getworkstationworkerById(id),id,'查询id对应的数据');
+    try {
+        let {code,msg,data} = await getworkstationworkerById(id)
+        if(code == 200){
+            ElMessage.success('获取数据'+msg);
+            submitAddPersonData.value = data
+        }else{
+            ElMessage.error('获取数据'+msg);
+        }
+    } catch (error) {
+        console.log(error,'获取数据失败');   
+    }
+}
+// 确认修改
+const confirmEdit = async()=>{
+    console.log('确认修改');
+   
+    // 调用确认修改接口
+    // console.log(await submitEditWorkstationworkerData(submitAddPersonData.value),'确认修改');
+    try {
+        let {code,msg} = await submitEditWorkstationworkerData(submitAddPersonData.value)
+        if(code == 200){
+            ElMessage.success('修改数据'+msg)
+            // 刷新数据
+            getWorkStationTableData()
+            personwindowStatus.value = false
+        }else{
+            ElMessage.error('修改数据'+msg)
+            personwindowStatus.value = false
+        }
+    } catch (error) {
+        console.log(error,'修改数据失败');
+            
+    }
+    // 清空数据
+    submitAddPersonData.value = {
+        postId:'',//岗位id
+        quantity:0//数量
+    }
+}
+
 
 
 watch(()=>prop.popwindowStatus, async(newVal, oldVal) => {
@@ -401,9 +691,6 @@ watch(()=>prop.popwindowStatus, async(newVal, oldVal) => {
             console.log(error,'获取车间数据失败');
             
         }
-
-       
-        
     }
 })
 watch(()=>prop.popwindowStatus, async(newVal, oldVal) => {
@@ -428,6 +715,8 @@ watch(()=>prop.popwindowStatus, async(newVal, oldVal) => {
     if(newVal){
         // 获取tree数据
         getMachineTreeData()
+        // 获取人力资源 岗位列表数据
+        getWorkPositionData()
     }
 })
 // 监听数据  数据变化  回显
@@ -444,8 +733,10 @@ watch(()=>prop.editWorkstationId,async(newVal)=>{
         // console.log('子组件ID收到  变化',newVal);
         workstationmachine.value.workstationId = newVal;
         // console.log(workstationmachine.value,'workstationmachine');
-        // 调用接口
+        // 调用接口  获取设备资源
         getWorkstationMachineData(workstationmachine.value)
+        // 获取人力资源
+        getWorkStationTableData(workstationmachine.value)
     }
 })
 
@@ -475,7 +766,26 @@ function listToTree(data, idKey = 'machineryTypeId', parentKey = 'parentTypeId',
   return tree;
 }
 
+// 更新设备资源table数据
+const emitManchineData =async(data)=>{
+    // 调用提交 设备选择数据 接口
+    console.log(data,'父emitManchineData');
+    submitMachineData.value = data
 
+    // console.log(await submitWorkstationMachineData(submitMachineData.value),'manchine提交结果');
+    try {
+        let {code,msg} = await submitWorkstationMachineData(submitMachineData.value)
+        if(code === 200){
+            ElMessage.success('提交数据'+msg);
+        }else{
+            ElMessage.error('提交数据'+msg);
+        }
+    } catch (error) {
+        console.log(error,'提交数据失败');
+        
+    }
+    getWorkstationMachineData()
+}
 
 </script>
 <style scoped>

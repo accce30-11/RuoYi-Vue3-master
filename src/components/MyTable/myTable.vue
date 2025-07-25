@@ -139,6 +139,7 @@
         if(props.tableSetting[0].prop === 'workshopCode') return row.workshopId
         if(props.tableSetting[0].prop === 'workstationCode') return row.workstationId
         if(props.tableSetting[0].prop === 'userName') return row
+        if(props.tableSetting[0].prop === 'machineryCode') return row
         return null
     }
 

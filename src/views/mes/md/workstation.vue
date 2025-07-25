@@ -117,6 +117,7 @@
             :popwindowStatus="popwindowStatus"
             v-model:popwindowStatus="popwindowStatus"   
             @emitWorkStationData="emitWorkStationData"
+            @emitPersonData="emitPersonData"
             :backShowData="backShowData"
             :editWorkstationId="editWorkstationId"
             ></workstationEditAdd>
@@ -128,7 +129,9 @@ import myInput from '@/components/MyInput/myInput.vue'
 import myTable from '@/components/MyTable/myTable.vue'
 import workstationEditAdd from '@/components/workstationEditAdd/workstationEditAdd.vue';
 import {  ElMessage } from 'element-plus';
-import { ref } from 'vue';
+import { provide, ref } from 'vue';
+import { useWorkstationStore } from '@/store/modules/workstationsId';
+const workstationStore = useWorkstationStore()
 
 
 const mytable = ref(null)
@@ -316,8 +319,25 @@ getWorkstationTableList()
 
 
 // 查看 某条数据
-const lookClientDetail=(id)=>{
+const lookClientDetail=async(id)=>{
     console.log(id,'lookworkStationDetail');
+    popwindowStatus.value = true
+    // 获取id对应数据并进行回显
+    // console.log(await backShowEditWorkStationData(id),'回显数据');
+    try {
+        let {code,data,msg} = await backShowEditWorkStationData(id);
+        if(code == 200){
+            ElMessage.success('数据项回显'+msg)
+            popwindowTitle.value = '查看工作站信息'
+            backShowData.value = data
+        }else{
+            ElMessage.error('数据项回显'+msg)
+        }
+    } catch (error) {
+        console.log(error,'error in lookClientDetail()' );
+        
+    }
+    
 }
 
 // 单条删除  弹窗显示
@@ -349,10 +369,14 @@ const confirmDelete = async()=>{
 }
 // 操作：修改
 const editUnit=async(id)=>{
-    console.log(id,'editUnit');
+    // console.log(id,'editUnit');
     editWorkstationId.value = id
-    // console.log(editWorkstationId.value,'editWorkstationId');
+    console.log(editWorkstationId.value,'editWorkstationId');
     
+    // 这里使用pinia进行传递workstationId
+    // 赋值
+    workstationStore.setWorkstationId(editWorkstationId.value)
+
     popwindowTitle.value = '修改工作站'
     popwindowStatus.value = true
    
@@ -382,7 +406,7 @@ const addNew=()=>{
 
 const editData=()=>{
     // console.log(mytable.value.deleteArr,'mytable.value.deleteArr')
-    // editUnit((mytable.value.deleteArr).toString())
+    editUnit((mytable.value.deleteArr).toString())
 }
 
 // 分页器相关

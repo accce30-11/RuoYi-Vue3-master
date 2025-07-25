@@ -572,7 +572,6 @@ export function getManchineTreeListData(){
   })
 }
 // 获取设备选择 table数据  /mes/dv/machinery/list
-
 export function getManchineTableData(params){
   return request({
     url:'/mes/dv/machinery/list',
@@ -580,4 +579,58 @@ export function getManchineTableData(params){
     params
   })
 }
+// 获取人力资源table数据  /mes/md/workstationworker/list
+export function getworkstationworkerTabelData(params){
+  return request({
+    url:'/mes/md/workstationworker/list',
+    method:'get',
+    params
+  })
+}
+// 获取人力资源 弹窗：添加人力资源中的岗位列表  /system/post/listAll
+export function getworkerPositionTableData(){
+  return request({
+    url:'/system/post/listAll',
+    method:'get',
+  })
+}
+// 人力资源  删除  /mes/md/workstationworker/
+export function deleteworkstationworker(id){
+  return request({
+    url:'/mes/md/workstationworker/'+id,
+    method:'delete',
+  })
+}
+// 添加人力资源  /mes/md/workstationworker
+export function submitWorkstationworkerData(data){
+  return request({
+    url:'/mes/md/workstationworker',
+    method:'post',
+    data
+  })
+}
+// 搜索 id对应的人力资源数据  /mes/md/workstationworker/
+export function getworkstationworkerById(id){
+  return request({
+    url:'/mes/md/workstationworker/'+id,
+    method:'get',
+  })
+}
+// 确认修改  /mes/md/workstationworker
+export function submitEditWorkstationworkerData(data){
+  return request({
+    url:'/mes/md/workstationworker',
+    method:'put',
+    data
+  })
+}
 
+ 
+// 设备选择数据提交  /mes/md/workstationmachine
+export function submitWorkstationMachineData(data){
+  return request({
+    url:'/mes/md/workstationmachine',
+    method:'post',
+    data
+  })
+}

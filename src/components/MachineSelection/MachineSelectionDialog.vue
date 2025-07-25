@@ -52,8 +52,12 @@ import treev2 from '@/components/tree/treev2.vue'
 import myTable from '@/components/MyTable/myTable.vue'
 import myInput from '@/components/MyInput/myInput.vue'
 import {getUserSelectData,searchWorkShop,getManchineTableData} from '@/api/mainData/mainData.js'
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 import { ElMessage,ElNotification  } from 'element-plus'
+// 孙组件使用pinia接收id
+import { useWorkstationStore } from '@/store/modules/workstationsId'
+const workstationStore = useWorkstationStore()
+
 
 
 const mytable = ref(null)
@@ -116,9 +120,8 @@ const tableSetting = ref([
 ])
 
 // 拿到负责人数据     nickName    userId
-const chargeData = ref({
-    nickName:'',
-    userId:''
+const submitManchineData = ref({
+    
 })
 
 // 接收
@@ -139,7 +142,7 @@ const chargeData = ref({
         }
     })
     // 发送子组件的弹窗状态
-    const emit = defineEmits(['update:popwindowStatus1','emitVisibleChange','emitChargeData'])
+    const emit = defineEmits(['update:popwindowStatus1','emitVisibleChange','emitManchineData'])
     function emitVisibleChange(val) {
         emit('update:popwindowStatus1', val)
     }
@@ -156,8 +159,9 @@ const getTreeTableData=(treeId)=>{
 // input 搜索数据
 const searchClientData=(value)=>{
     console.log('搜索数据：',value);
-    params.value.userName = value.userName
-    params.value.phonenumber = value.phonenumber
+    params.value.machineryCode = value.machineryCode
+    params.value.machineryName = value.machineryName
+    params.value.workshopName = value.workshopName
     console.log(params.value,'测试一下');
     
     // 调用请求
@@ -165,8 +169,9 @@ const searchClientData=(value)=>{
 }
 // 重置
 const clearSearchData=()=>{
-    params.value.userName = ''
-    params.value.phonenumber = ''
+    params.value.machineryCode = ''
+    params.value.machineryName = ''
+    params.value.workshopName = ''
     console.log(params.value,'测试一下');
     
     // 调用请求
@@ -179,8 +184,10 @@ const cancel=()=>{
     emit('update:popwindowStatus1',false)
 }
 
+
+// 设备选择 确定按钮
 const confirm=()=>{
-    // 获取负责人数据  判断至少选中一条数据
+    // 获取选中数据  判断至少选中一条数据
     if(mytable.value.deleteArr.length <= 0){
         ElNotification({
             title: '提示',
@@ -189,12 +196,25 @@ const confirm=()=>{
         })
         return
     }
-    // 赋值负责人数据
-    chargeData.value.nickName = mytable.value.deleteArr[0].nickName
-    chargeData.value.userId = mytable.value.deleteArr[0].userId
+    // 赋值数据
+    submitManchineData.value = mytable.value.deleteArr
+    console.log(submitManchineData.value,'子submitManchineData'  );
+    
+//    这里使用pinia进行接收
+    console.log(workstationStore.workstationId,'pinia');
+    
+    submitManchineData.value = {
+        ...mytable.value.deleteArr[0],
+        workstationId:workstationStore.workstationId
+    }
+    console.log('整理后的数据',submitManchineData.value);
+    
+
+    // chargeData.value.nickName = mytable.value.deleteArr[0].nickName
+    // chargeData.value.userId = mytable.value.deleteArr[0].userId
     // console.log(chargeData.value,'测试一下');
     emit('update:popwindowStatus1',false)
-    emit('emitChargeData',chargeData.value)
+    emit('emitManchineData',submitManchineData.value)
 }
 
 // 获取右侧选择数据
@@ -203,7 +223,7 @@ const getUserData = async() => {
         // console.log( await getUserSelectData(params.value));
         let {code,msg,rows,total} = await getManchineTableData(params.value)
         if (code === 200) {
-            console.log(rows,'rows');
+            // console.log(rows,'rows');
             
             ElMessage.success('设备选择'+msg)
             tableData.value = rows
