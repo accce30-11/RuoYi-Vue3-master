@@ -7,27 +7,29 @@
             :model-value="dialogVisible"
             @update:dialogVisible="emitVisibleChange"
             >
+            <!-- 新增物料/产品 -->
             <template #header>
-                <div class="titleClass"><h3><b>新增物料/产品</b></h3></div>
+                <div class="titleClass"><h3><b>{{ props.mdItemTitle }}</b></h3></div>
             </template>
             <el-form style="padding:20px 30px 0 30px ;">
                 <el-form-item label="物料编码" >
                     <el-input placeholder="请输入物料编码" 
                               style="width: 240px;"
-                              v-model="formData.materialCode"
+                              v-model="formData.itemCode"
                               ></el-input>
-                    <el-switch v-model="switchValue"  
+                    <el-switch :disabled="props.mdItemTitle =='查看物料/产品'"
+                               v-model="switchValue"  
                                active-text="自动生成"
                                @change="switchChange"></el-switch>
                 </el-form-item>
 
                 <el-form-item label="物料名称" >
-                    <el-input placeholder="请输入物料名称" v-model="formData.materialName" style="width: 440px;"></el-input>
+                    <el-input placeholder="请输入物料名称" v-model="formData.itemName" style="width: 440px;"></el-input>
                 </el-form-item>
 
                 <el-form-item label="规格型号">
                     <el-mention
-                        v-model="formData.specificationModel"
+                        v-model="formData.specification"
                         type="textarea"
                         :options="options"
                         style="width: 440px"
@@ -36,7 +38,9 @@
                 </el-form-item>
 
                 <el-form-item label="单位">
-                    <el-select v-model="formData.unit" placeholder="请选择单位" style="width: 240px">
+                    <el-select 
+                        :disabled="props.mdItemTitle =='查看物料/产品'"
+                        v-model="formData.unitOfMeasure" placeholder="请选择单位" style="width: 240px">
                     <el-option
                         v-for="item in UnitTreeData"
                         :key="item.measureName"
@@ -48,7 +52,8 @@
 
                 <el-form-item label="物料/产品分类">
                     <el-tree-select
-                        v-model="formData.category"
+                        :disabled="props.mdItemTitle =='查看物料/产品'"
+                        v-model="formData.itemTypeId"
                         :data="itemOrProjectData"
                         :props="{value: 'id', label: 'label', children: 'children' }"
                         :render-after-expand="false"
@@ -66,14 +71,15 @@
                 <div style="display: flex;align-items: center;justify-content: space-between;">
                     <el-form-item label='是否启用'>
                         <div>
-                            <el-radio v-model="formData.enable" disabled value="disabled">是</el-radio>
-                            <el-radio v-model="formData.enable" disabled value="N">否</el-radio>
+                            <el-radio v-model="formData.enableFlag" disabled value="disabled">是</el-radio>
+                            <el-radio v-model="formData.enableFlag" disabled value="N">否</el-radio>
                         </div>
                     </el-form-item>
 
                     <el-form-item label="批次管理">
                         <div>
                         <el-switch
+                            :disabled="props.mdItemTitle =='查看物料/产品'"
                             v-model="formData.batchFlag"
                             active-text="是"
                             inactive-text="否"
@@ -85,7 +91,9 @@
 
                     <el-form-item label="安全库存">
                         <div>
-                            <el-radio-group v-model="formData.safeStockFlag">
+                            <el-radio-group 
+                                :disabled="props.mdItemTitle =='查看物料/产品'"
+                                v-model="formData.safeStockFlag">
                             <el-radio value="Y" size="large">是</el-radio>
                             <el-radio value="N" size="large">否</el-radio>
                             </el-radio-group>
@@ -95,7 +103,7 @@
                 </div>
                 <el-form-item label="备注">
                     <el-mention
-                        v-model="formData.notes"
+                        v-model="formData.remark"
                         type="textarea"
                         :options="options"
                         style="width: 100%"
@@ -104,11 +112,31 @@
                 </el-form-item>
             </el-form>
 
+            
+              <el-tabs v-if="mdItemTitle == '查看物料/产品'" type="border-card" class="demo-tabs">
+                <el-tab-pane>
+                  <template #label>
+                    <span class="custom-tabs-label">
+                      <el-icon><calendar /></el-icon>
+                      <span>Route</span>
+                    </span>
+                  </template>
+                  Route
+                </el-tab-pane>
+                <el-tab-pane label="Config">Config</el-tab-pane>
+                <el-tab-pane label="Role">Role</el-tab-pane>
+                <el-tab-pane label="Task">Task</el-tab-pane>
+              </el-tabs>
+           
+
             <template #footer>
                 <div class="dialog-footer">
                   <el-button @click="cancel">关闭</el-button>
-                  <el-button type="primary" @click="confirm">
+                  <el-button type="primary" @click="confirm" v-if="props.mdItemTitle =='新增物料/产品' ">
                     确定
+                  </el-button>
+                  <el-button type="primary" @click="editConfirm" v-if="props.mdItemTitle== '修改物料/产品' ">
+                    修改
                   </el-button>
                 </div>
             </template>
@@ -118,10 +146,15 @@
 <script setup>
     // 引入接口  getRandomCode  getBarcodeUrl(点击switch触发点另一个调用接口，二维码)
     import { ElMessage } from 'element-plus'
-    import {getRandomCode,getBarcodeUrl,submitProjuctData} from '../../api/mainData/mainData.js'
+    import {getRandomCode,getBarcodeUrl,submitProjuctData,updateMditem} from '../../api/mainData/mainData.js'
     import { ref,watch} from 'vue'
+    import { Calendar } from '@element-plus/icons-vue'
+
+
     // 定义switch 自动生成物料编码的switch状态
     const switchValue = ref(false)
+    // tabs 是否显示状态
+    const tabStatus = ref(true)
     
     // 定义 switch开关点击后  另一个接口需要上传的数据
     const switchRelatedData = ref({
@@ -158,23 +191,28 @@
 // 定义：表单数据
     const formData = ref({
 
-        materialCode:'',      // 物料编码
-        materialName:'',      // 物料名称
-        specificationModel:'',//规格型号
-        unit:'',              //单位
-        category:'',          // 物料/产品分类
+        maxStock: 0,
+        minStock: 0,
+        barcodeUrl:null,
+        itemCode:'',      // 物料编码
+        itemName:'',      // 物料名称
+        specification:'',//规格型号
+        unitOfMeasure:'',              //单位
+        itemTypeId:'',          // 物料/产品分类
         highValue:'',         //高价值
-        enable:'N',            //是否启用
+        enableFlag:'N',            //是否启用
         batchFlag:'',         //批次管理
         safeStockFlag:'',   //安全库存
-        notes:'',             //备注
+        remark: "",
     })
 
 // 接收父组件 dialogVisible的状态
 const props = defineProps({
     dialogVisible:Boolean,
     itemOrProjectData:Array,
-    UnitTreeData:Array
+    UnitTreeData:Array,
+    backshowData:Object,
+    mdItemTitle:String
 })
 
 // 发送子组件的弹窗状态
@@ -202,8 +240,16 @@ const confirm=async()=>{
             console.log('打印一份提交成功的返回值',backEditData.value);
             
             // 通知父组件刷新  updateParentTable
+            emit('updateParentTable')
+            clearData()
+            emit('update:dialogVisible', false)
+        }else{
+            ElMessage.error('提交数据'+msg)
+            emit('update:dialogVisible', false)
         }
     } catch (error) {
+        console.log(error,'提交数据出错');
+        emit('update:dialogVisible', false)
         
     }
   
@@ -214,18 +260,66 @@ const switchChange=async()=>{
     if(switchValue.value == true){
         // 调用获取物料编码的接口
         console.log('调用物料编码接口');
-        formData.value.materialCode =  await getRandomCode()
+        formData.value.itemCode =  await getRandomCode()
         // 另一个触发接口  二维码
-        switchRelatedData.value.bussinessCode = formData.value.materialCode
+        switchRelatedData.value.bussinessCode = formData.value.itemCode
         console.log(await getBarcodeUrl(switchRelatedData.value),'QRCode');
         
 
     }else{
         // 不生成，清空
-        formData.value.materialCode = '';
+        formData.value.itemCode = '';
     }
 }
 
+// 确认修改
+const editConfirm=async()=>{
+    // emit('update:dialogVisible', false)
+    console.log(formData.value,'formData修改前的数据');
+    try {
+        let {code,msg,data } = await updateMditem(formData.value)
+        if(code == 200){
+            console.log(data,'----------修改数据----------');
+            
+            ElMessage.success('修改数据'+msg)
+            // 通知父组件刷新  updateParentTable
+            emit('updateParentTable')
+            clearData()
+            emit('update:dialogVisible', false)
+        }else{
+            ElMessage.error('修改数据'+msg)
+            emit('update:dialogVisible', false)
+        }
+    } catch (error) {
+        console.log(error,'修改数据出错');
+        emit('update:dialogVisible', false)
+        
+    }
+ 
+}
+
+const clearData = ()=>{
+    formData.value = {
+        maxStock: 0,
+        minStock: 0,
+        barcodeUrl:null,
+        itemCode:'',
+        itemName:'',
+        specification:'',
+        unitOfMeasure:'',
+        itemTypeId:'',
+        highValue:'',
+        enableFlag:'N',
+        batchFlag:'',
+        safeStockFlag:'',
+        remark: "",
+    }
+}
+watch(() => props.backshowData, (newVal, oldVal) => {
+    if(newVal!= oldVal){
+        formData.value = newVal
+    }
+})
 
 
 </script>
@@ -234,6 +328,19 @@ const switchChange=async()=>{
         display: flex;
         justify-content: center;
         border-bottom: 1px solid ;
+    }
+    .demo-tabs > .el-tabs__content {
+      padding: 32px;
+      color: #6b778c;
+      font-size: 32px;
+      font-weight: 600;
+    }
+    .demo-tabs .custom-tabs-label .el-icon {
+      vertical-align: middle;
+    }
+    .demo-tabs .custom-tabs-label span {
+      vertical-align: middle;
+      margin-left: 4px;
     }
 
 </style>

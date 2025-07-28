@@ -7,6 +7,8 @@
                 @row-click="handleRadioChange"
                 highlight-current-row
                  >
+
+
             <!--前置 radio -->
             <el-table-column
                 v-if="isRadio"
@@ -22,11 +24,16 @@
                     </el-radio>
                 </template>
             </el-table-column>
+
+            <!-- 复选框 -->
             <el-table-column 
-                             v-if="!isRadio"
-                             type="selection" 
-                             width="55" ></el-table-column>
-                             <!-- :selectable="selectable" -->
+                v-if="!isRadio"
+                type="selection" 
+                width="55" >
+            </el-table-column>
+
+
+                             <!-- :selectable="selectable" -->             
             <el-table-column v-for="item in tableSetting" 
                              :key="item.label" 
                              :prop="item.prop" 

@@ -35,8 +35,8 @@
                            :disabled="mytable?.deleteArr.length == 0 ? true:false"
                            >删除</el-button>
                             <!--  -->
-                <el-button type="info" icon="Upload" plain>导入</el-button>
-                <el-button type="warning" icon="Download" plain>导出</el-button>
+                <el-button type="info" icon="Upload" plain @click="uploadFun">导入</el-button>
+                <el-button type="warning" icon="Download" plain @click="exportExcel">导出</el-button>
             </div>
             <div class="my-table">
                 <!-- 右侧表格 -->
@@ -50,6 +50,7 @@
                         <template #itemCode="{ scoped }">
                             <el-button
                               type="primary"
+                              @click="lookMeitemDetail(scoped.itemId)"
                               link>
                             {{ scoped.itemCode}}
                             </el-button>
@@ -83,6 +84,7 @@
                                          size="small"
                                          type="primary"
                                          icon="EditPen" 
+                                         @click="editMditem(scoped.itemId)"
                                         >修改</el-button>
                                 <el-button
                                          link
@@ -107,7 +109,10 @@
             </div>
         </div>
         <!-- 弹窗 -->
-         <el-dialog v-model="switchDialogStatus"
+         <el-dialog :show-close="false"
+                    :close-on-click-modal="false"
+                    :close-on-press-escape="false"
+                    v-model="switchDialogStatus"
                     title="系统提示">
             <span v-if="switchOrDelete == 'switch'">
                 确定要"启用"
@@ -121,7 +126,7 @@
             </span>
             <template #footer>
                 <div class="dialog-footer">
-                <el-button @click="switchDialogStatus = false">取消</el-button>
+                <el-button @click="cancle">取消</el-button>
 
                 <el-button v-if="switchOrDelete == 'switch'" type="primary" @click="switchConfirmButton()">
                 确定
@@ -138,12 +143,55 @@
          <!-- 新增修改弹窗 -->
           <addEditDialog v-model:dialogVisible="dialogVisible"
                          :itemOrProjectData="itemOrProjectData"
-                         :UnitTreeData="UnitTreeData">
+                         :backshowData="backshowData"
+                         :mdItemTitle="mdItemTitle"
+                         :UnitTreeData="UnitTreeData"
+                         @updateParentTable="updateParentTable">
             
           </addEditDialog>
+
+          <!-- 上传 -->
+          <el-dialog style="width: 500px;"
+                    :show-close="false"
+                    :close-on-click-modal="false"
+                    :close-on-press-escape="false"
+                    v-model="uploadDialogVisible">
+                <template #header>
+                    物料产品
+                </template>
+                      <el-upload
+                        class="upload-demo"
+                        drag
+                        action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                        multiple
+                      >
+                        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                        <div class="el-upload__text">
+                          讲文件拖到此处，或 <em>点击上传</em>
+                        </div>
+                        <template #tip>
+                          <div class="el-upload__tip">
+                            jpg/png files with a size less than 500kb
+                          </div>
+                        </template>
+                      </el-upload>
+                 <template #footer>
+                    <div class="dialog-footer">
+                        <el-button @click="uploadDialogVisible = false">取消</el-button>
+                        <el-button type="primary" @click="uploadConfirm">
+                        确定
+                        </el-button>
+                    </div>
+                </template>
+          </el-dialog>
     </div>
 </template>
 <script setup>
+// 文件导出
+// 导出 Excel 示例
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
 import { onMounted, ref } from 'vue'
 // 引入子组件  tree myTable  myInput  addEdit
 import myInput from '@/components/MyInput/myInput.vue'
@@ -151,7 +199,7 @@ import treev2 from '@/components/tree/treev2.vue'
 import myTable from '@/components/myTable/myTable.vue'
 import addEditDialog from '@/components/AddOrEdit/addEditDialog.vue'
 // 引入接口
-import { getTreeList, getTableList,switchStatus,deleteProject,getProjectTreeData,getUnitTreeData} from '@/api/mainData/mainData.js'
+import { getTreeList, getTableList,switchStatus,deleteProject,getProjectTreeData,getUnitTreeData,getMditemDetails} from '@/api/mainData/mainData.js'
 import { ElMessage } from 'element-plus'
 
 // 测试： 父组件传入 -----------------
@@ -160,7 +208,8 @@ const inputConfigs = [
   { label: '物料名称', placeholder: '请输入物料名称', prop: 'materialName',slotStatus:false}, 
 ]
 
-
+// 导入弹窗
+const uploadDialogVisible = ref(false)
 
 // 定义数据  左侧树形结构数据
 let treeData = ref([])
@@ -236,7 +285,7 @@ let params = ref({
     pageSize: 10,
     itemTypeId: 0,   //左侧分类的id
     // 搜索框搜索的数据
-    itemCode: 0,
+    itemCode: '',
     itemName:''
 })
 // 定义switch控制dialog的默认值
@@ -262,6 +311,9 @@ const itemOrProjectData = ref([])
 
 const UnitTreeData = ref([])
 
+// 数据回显
+const backshowData = ref({})
+const mdItemTitle = ref('')
 
 // 获取左侧属性结构数据
 const getTreeData = async () => {
@@ -361,7 +413,7 @@ const resetSearchData=()=>{
     console.log(params,'params');
     
     // 重置搜索框的数据
-    params.value.itemCode = 0
+    params.value.itemCode = ''
     params.value.itemName = ''
     // 重置table数据
     // getSearchData(params.value)
@@ -387,11 +439,25 @@ const switchConfirmButton=async()=>{
          if(code == 200){
             ElMessage.success(msg)
             getTableData()
+         }else{
+            ElMessage.error(msg)
+            getTableData()
          }
     } catch (error) {
         console.log(error,'error');
         getTableData()
     }
+}
+// 弹窗取消按钮
+const cancle = ()=>{
+     
+    // 修改switch
+   oneSwitchData.value.enableFlag = 'N'
+   
+    // 打开窗口
+    switchDialogStatus.value = false
+    
+
 }
 // 删除点击事件  右侧删除文字的弹窗
 const deleteItem=(id)=>{
@@ -433,6 +499,7 @@ const delAll = async()=>{
     getTableData()
 }
 const addNew = async()=>{
+    mdItemTitle.value = '新增物料/产品'
     // 新增物料弹窗打开
     dialogVisible.value = true
     // console.log(dialogVisible.value,'dialogVisible');
@@ -466,8 +533,76 @@ const getUnitData=async()=>{
             ElMessage.success('单位数据'+ msg)
         }
 }
+// 导入 
+const uploadFun = ()=>{
+    uploadDialogVisible.value = true
+}
+const uploadConfirm = ()=>{
+    uploadDialogVisible.value = false
+}
+const exportExcel = () => {
+  // 1. 处理表头和数据
+  const headers = tableSetting.value.map(item => item.label)
+  const fields = tableSetting.value.map(item => item.prop)
+  const data = tableData.value.map(row =>
+    fields.map(field => row[field])
+  )
+  // 2. 组装成 sheet
+  const sheetData = [headers, ...data]
+  const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
+  // 3. 导出
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+  saveAs(new Blob([excelBuffer], { type: 'application/octet-stream' }), '物料产品.xlsx')
+}
 
+// 查看详情  lookMeitemDetail
+const lookMeitemDetail=async(id)=>{
+    mdItemTitle.value = '查看物料/产品'
+    dialogVisible.value = true
 
+    try {
+        // console.log(await getMditemDetails(id),'getMditemDetails');
+        let {code,data,msg} = await getMditemDetails(id)
+        if(code == 200){
+            ElMessage.success(id+'对应的数据查询'+msg)
+            backshowData.value = data
+        }else{
+            ElMessage.error(id+'对应的数据查询'+msg)
+        }
+        
+    } catch (error) {
+        console.log(error,'error');
+        
+    }
+}
+
+// 操作：修改  查询数据
+const editMditem=async(id)=>{
+    mdItemTitle.value = '修改物料/产品'
+    dialogVisible.value = true
+    try {
+        // console.log(await getMditemDetails(id),'getMditemDetails');
+        let {code,data,msg} = await getMditemDetails(id)
+        if(code == 200){
+            ElMessage.success(id+'对应的数据查询'+msg)
+            backshowData.value = data
+        }else{
+            ElMessage.error(id+'对应的数据查询'+msg)
+        }
+        
+    } catch (error) {
+        console.log(error,'error');
+        
+    }
+}
+
+// 刷新数据
+const updateParentTable=()=>{
+    // 刷新table数据
+    getTableData()
+}
 
 
 onMounted(() => {

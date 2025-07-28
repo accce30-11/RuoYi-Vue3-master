@@ -92,7 +92,7 @@
                 </el-form-item>
 
                 <!-- tabs -->
-                 <el-card>
+                 <el-card v-if="popwindowTitle == '查看'">
                     <el-tabs type="border-card" class="demo-tabs" @tab-click="getData">
                       <el-tab-pane label='产品清单' name="product">
                         <el-table >

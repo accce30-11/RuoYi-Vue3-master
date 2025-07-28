@@ -8,6 +8,13 @@ export function getTreeList() {
     method: 'get'
   })
 }
+// 查看数据详情  /mes/md/mditem/
+export function getMditemDetails(id){
+  return request({
+    url:'/mes/md/mditem/'+id,
+    method:'get'
+  })
+}
 
 // 主数据 表格数据获取
 // /mes/md/mditem/list
@@ -23,6 +30,15 @@ export function getTableList(params){
           itemName:params.itemName,
         }
     })
+}
+
+// 修改数据后提交  /mes/md/mditem
+export function updateMditem(data){
+  return request({
+    url:'/mes/md/mditem',
+    method:'put',
+    data
+  })
 }
 
 // switch 状态接口   /mes/md/mditem
@@ -81,20 +97,7 @@ export function submitProjuctData(data){
   return request({
     url:'/mes/md/mditem',
     method:'post',
-    data:{
-        barcodeUrl:null,
-        batchFlag:data.batchFlag,
-        enableFlag:data.enable,
-        highValue:data.highValue,
-        itemCode:data.materialCode,
-        itemName:data.materialName,
-        itemTypeId:data.category,
-        maxStock:0,
-        minStock:0,
-        safeStockFlag:data.safeStockFlag,
-        specification:data.specificationModel,
-        unitOfMeasure:data.unit
-    }
+    data
   })
 }
 
