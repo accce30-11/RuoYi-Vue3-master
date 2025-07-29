@@ -26,6 +26,7 @@
                 <el-button type="success" 
                            icon="EditPen" 
                            plain
+                           @click="topEdit"
                            :disabled="mytable?.deleteArr.length == 1 ?false:true"
                            >修改</el-button>
                 <el-button type="danger" 
@@ -146,7 +147,8 @@
                          :backshowData="backshowData"
                          :mdItemTitle="mdItemTitle"
                          :UnitTreeData="UnitTreeData"
-                         @updateParentTable="updateParentTable">
+                         @updateParentTable="updateParentTable"
+                         :bomTableData="bomTableData">
             
           </addEditDialog>
 
@@ -199,7 +201,7 @@ import treev2 from '@/components/tree/treev2.vue'
 import myTable from '@/components/myTable/myTable.vue'
 import addEditDialog from '@/components/AddOrEdit/addEditDialog.vue'
 // 引入接口
-import { getTreeList, getTableList,switchStatus,deleteProject,getProjectTreeData,getUnitTreeData,getMditemDetails} from '@/api/mainData/mainData.js'
+import { getTreeList, getTableList,switchStatus,deleteProject,getProjectTreeData,getUnitTreeData,getMditemDetails,getBOMData } from '@/api/mainData/mainData.js'
 import { ElMessage } from 'element-plus'
 
 // 测试： 父组件传入 -----------------
@@ -276,6 +278,7 @@ const tableSetting = ref([
 
 const mytable = ref(null)
 
+const bomTableData = ref({})
 
 // 右侧表格总条数、总页数  
 let tableTotal = ref(0)
@@ -314,6 +317,13 @@ const UnitTreeData = ref([])
 // 数据回显
 const backshowData = ref({})
 const mdItemTitle = ref('')
+
+// 定义查看数据所需参数
+const lookData = ref({
+    pageNum:1,
+    pageSize:10,
+    itemId:''
+})
 
 // 获取左侧属性结构数据
 const getTreeData = async () => {
@@ -571,11 +581,30 @@ const lookMeitemDetail=async(id)=>{
         }else{
             ElMessage.error(id+'对应的数据查询'+msg)
         }
-        
     } catch (error) {
         console.log(error,'error');
+    }
+    try {
+        // console.log(await getBOMData(lookData.value),'Bom数据' );
+        let {code,msg,rows,total} = await getBOMData(lookData.value)
+        if(code == 200){
+            ElMessage.success('Bom数据'+msg)
+            bomTableData.value = rows
+            // bomTableTotal.value = total
+        }else{
+            ElMessage.error('Bom数据'+msg)
+        }
+        
+    } catch (error) {
         
     }
+    // // 查询Bom组成数据
+    // lookData.value.itemId = id
+    // console.log(lookData.value);
+}
+// 颜色按钮：修改
+const topEdit = async()=>{
+    editMditem((mytable.value.deleteArr).toString())
 }
 
 // 操作：修改  查询数据
@@ -594,8 +623,9 @@ const editMditem=async(id)=>{
         
     } catch (error) {
         console.log(error,'error');
-        
     }
+    
+    
 }
 
 // 刷新数据

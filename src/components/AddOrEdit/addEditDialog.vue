@@ -117,14 +117,23 @@
                 <el-tab-pane>
                   <template #label>
                     <span class="custom-tabs-label">
-                      <el-icon><calendar /></el-icon>
-                      <span>Route</span>
+                      <span>BOM组成</span>
                     </span>
                   </template>
-                  Route
+
+                  <el-table :data="tabsTableData">
+                    <el-table-column prop="bomItemCode" label="物料编码" />
+                    <el-table-column prop="bomItemName" label="物料名称" />
+                    <el-table-column prop="bomItemSpec" label="规格" />
+                    <el-table-column prop="unitName" label="单位" />
+                    <el-table-column prop="quantity" label="使用比例" />
+                    <el-table-column prop="remark" label="备注" />
+                </el-table>
+
                 </el-tab-pane>
-                <el-tab-pane label="Config">Config</el-tab-pane>
-                <el-tab-pane label="Role">Role</el-tab-pane>
+                <el-tab-pane label="批次属性">批次属性</el-tab-pane>
+                <el-tab-pane label="替代品">替代品</el-tab-pane>
+                <el-tab-pane label="SIP">SIP</el-tab-pane>
                 <el-tab-pane label="Task">Task</el-tab-pane>
               </el-tabs>
            
@@ -206,13 +215,16 @@
         remark: "",
     })
 
+    const tabsTableData = ref([])
+
 // 接收父组件 dialogVisible的状态
 const props = defineProps({
     dialogVisible:Boolean,
     itemOrProjectData:Array,
     UnitTreeData:Array,
     backshowData:Object,
-    mdItemTitle:String
+    mdItemTitle:String,
+    bomTableData:Object
 })
 
 // 发送子组件的弹窗状态
@@ -222,6 +234,7 @@ function emitVisibleChange(val) {
 }
 // 取消按钮
 const cancel=()=>{
+    clearData()
     emit('update:dialogVisible', false)
 }
 // 确定按钮
@@ -320,6 +333,12 @@ watch(() => props.backshowData, (newVal, oldVal) => {
         formData.value = newVal
     }
 })
+watch(()=>props.bomTableData,(newVal,oldVal)=>{
+    if(newVal){
+        tabsTableData.value = newVal
+    }
+})
+
 
 
 </script>

@@ -15,6 +15,14 @@ export function getMditemDetails(id){
     method:'get'
   })
 }
+// BOM组成数据查询
+export function getBOMData(params){
+  return request({
+    url:'/mes/md/bom/list',
+    method:'get',
+    params
+  })
+}
 
 // 主数据 表格数据获取
 // /mes/md/mditem/list
